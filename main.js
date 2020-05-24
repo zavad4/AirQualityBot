@@ -31,7 +31,13 @@ async function getQualityBy(type, ...args) {
     return res;
 }
 
+const databaseByCity = new Set();
+const databaseByCoords = new Set();
 const cityRequested = new Set();
+const CORRECT_HOUR = 13;
+const CORRECT_MINUTES = 55;
+let currentHour = 0;
+let currentMinute = 0;
 
 bot.command('start', ctx => ctx.reply('Please location or city', Extra.markup(markup => markup.resize()
     .keyboard([
@@ -41,24 +47,46 @@ bot.command('start', ctx => ctx.reply('Please location or city', Extra.markup(ma
     .oneTime()
 )));
 
+bot.hears('Ok', ctx => console.log(databaseByCity, databaseByCoords));
+
 bot.on('location', async ctx => {
     const lon = ctx.message.location.longitude;
     const lat = ctx.message.location.latitude;
+    databaseByCoords.add({ id: ctx.message.chat.id, lon, lat });
+    console.log(databaseByCoords);
     const index = await getQualityBy('coords', lon, lat);
     ctx.reply(`Okey, I'll send you air quality index of this place every day. Now it is ${index}`);
 });
 
 bot.hears('Send city', ctx => {
-    cityRequested.add(ctx.message.from.id);
+    cityRequested.add(ctx.message.chat.id);
     ctx.reply('Okey, send me your city');
 });
 
 bot.on('text', async ctx => {
     if (cityRequested.has(ctx.message.from.id)) {
+        databaseByCity.add({ id: ctx.message.from.id, city: ctx.message.text });
+        console.log(databaseByCity);
         const index = await getQualityBy('city', ctx.message.text);
         ctx.reply(`Okey, I'll send you air quality index of this place every day. Now it is ${index}`);
     }
-    cityRequested.delete(ctx.message.from.id);
+    cityRequested.delete(ctx.message.chat.id);
 });
+
+setInterval(() => {
+    console.log(new Date().getUTCHours() + ':' + new Date().getUTCMinutes());
+    currentHour = new Date().getUTCHours();
+    currentMinute = new Date().getUTCMinutes();
+    if (currentHour === CORRECT_HOUR && currentMinute === CORRECT_MINUTES) {
+        databaseByCity.forEach(async user => {
+            const index = await getQualityBy('city', user.city);
+            bot.telegram.sendMessage(user.id, index);
+        });
+        databaseByCoords.forEach(async user => {
+            const index = await getQualityBy('coords', user.lon, user.lat);
+            bot.telegram.sendMessage(user.id, index);
+        });
+    }
+}, 60000);
 
 bot.launch();
