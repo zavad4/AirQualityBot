@@ -3,7 +3,6 @@ const Telegraf = require('telegraf');
 const Extra = require('telegraf/extra');
 const request = require('request');
 const bot = new Telegraf('1241797755:AAGIIpoXru5SWv4mDO5PhSD7N4G3x91mEBQ');
-
 const token = 'aa36752d4a3159859afd0e84b3abf7cacab10018';
 
 async function getQualityBy(type, ...args) {
@@ -31,6 +30,16 @@ async function getQualityBy(type, ...args) {
     return res;
 }
 
+async function sendQualityByCoords(user) {
+    const index = await getQualityBy('coords', user.lon, user.lat);
+    bot.telegram.sendMessage(user.id, index);
+}
+
+async function sendQualityByCity(user) {
+    const index = await getQualityBy('city', user.city);
+    bot.telegram.sendMessage(user.id, index);
+}
+
 const databaseByCity = new Set();
 const databaseByCoords = new Set();
 const cityRequested = new Set();
@@ -46,8 +55,6 @@ bot.command('start', ctx => ctx.reply('Please location or city', Extra.markup(ma
     ])
     .oneTime()
 )));
-
-bot.hears('Ok', ctx => console.log(databaseByCity, databaseByCoords));
 
 bot.on('location', async ctx => {
     const lon = ctx.message.location.longitude;
@@ -78,14 +85,8 @@ setInterval(() => {
     currentHour = new Date().getUTCHours();
     currentMinute = new Date().getUTCMinutes();
     if (currentHour === CORRECT_HOUR && currentMinute === CORRECT_MINUTES) {
-        databaseByCity.forEach(async user => {
-            const index = await getQualityBy('city', user.city);
-            bot.telegram.sendMessage(user.id, index);
-        });
-        databaseByCoords.forEach(async user => {
-            const index = await getQualityBy('coords', user.lon, user.lat);
-            bot.telegram.sendMessage(user.id, index);
-        });
+        databaseByCity.forEach(sendQualityByCity);
+        databaseByCoords.forEach(sendQualityByCoords);
     }
 }, 60000);
 
