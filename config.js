@@ -1,9 +1,10 @@
 'use strict';
-const BOT_TOKEN = '1241797755:AAGIIpoXru5SWv4mDO5PhSD7N4G3x91mEBQ';
-const API_TOKEN = 'aa36752d4a3159859afd0e84b3abf7cacab10018';
-const API_URL = 'https://api.waqi.info/feed/';
-const CORRECT_HOUR = 5;
-const CORRECT_MINUTES = 0;
+require('dotenv').config();
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const API_TOKEN = process.env.API_TOKEN;
+const API_URL = process.env.API_URL;
+const CORRECT_HOUR = 18;
+const CORRECT_MINUTES = 16;
 
 module.exports = {
   BOT_TOKEN,
