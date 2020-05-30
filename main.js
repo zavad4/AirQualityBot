@@ -17,16 +17,21 @@ async function getQualityBy(type, ...args) {
     await new Promise((resolve, reject) => {
         request(options, (error, response, body) => {
             if (error) {
-                res = 'impossible to determine.';
                 reject(error);
             }
-            resolve(JSON.parse(body));
+             else {
+                 resolve(JSON.parse(body));
+             }
         });
     })
         .then(data => {
             console.log(data.data.aqi);
             res = data.data.aqi;
-        });
+        })
+        .catch(err => {
+            res = 'impossible to determine';
+            console.log(err);
+         })
     return res;
 }
 
@@ -40,21 +45,50 @@ async function sendQualityByCity(user) {
     bot.telegram.sendMessage(user.id, index);
 }
 
+const sendQualityBy = type => async user => {
+    let index = 0;
+    if (type === 'city') index = await getQualityBy('city', user.city);
+    else if (type === 'coords') index = await getQualityBy('coords', user.lon, user.lat);
+    bot.telegram.sendMessage(user.id, index);
+}
+
+const setAnswer = index => {
+    let answer;
+    if (typeof index === 'number') {
+        answer = `Okey, I'll send you air quality index of this place every day. Now it is ${index}.`;
+    }
+    else answer = 'It is impossible to determine. Please, enter city.';
+    return answer;
+}
+
 const databaseByCity = new Set();
 const databaseByCoords = new Set();
 const cityRequested = new Set();
-const CORRECT_HOUR = 13;
-const CORRECT_MINUTES = 55;
+const CORRECT_HOUR = 11;
+const CORRECT_MINUTES = 33;
 let currentHour = 0;
 let currentMinute = 0;
 
-bot.command('start', ctx => ctx.reply('Please location or city', Extra.markup(markup => markup.resize()
+bot.command('start', ctx => ctx.reply('Please location or city', Extra.markup(markup => 
+    markup.resize()
     .keyboard([
-        markup.locationRequestButton('Send location'),
-        markup.button('Send city'),
+        markup.locationRequestButton('📍 Send location'),
+        markup.button('🏙 Send city'),
     ])
     .oneTime()
 )));
+
+bot.command('unsubscribe', ctx => {
+    databaseByCity.forEach( user => {
+        if (user.id === ctx.message.chat.id) databaseByCity.delete(user)
+    });
+    databaseByCoords.forEach( user => {
+        if (user.id === ctx.message.chat.id) databaseByCoords.delete(user)
+    });
+    console.log(databaseByCity);
+    console.log(databaseByCoords);
+    ctx.reply('By!')
+});
 
 bot.on('location', async ctx => {
     const lon = ctx.message.location.longitude;
@@ -62,31 +96,32 @@ bot.on('location', async ctx => {
     databaseByCoords.add({ id: ctx.message.chat.id, lon, lat });
     console.log(databaseByCoords);
     const index = await getQualityBy('coords', lon, lat);
-    ctx.reply(`Okey, I'll send you air quality index of this place every day. Now it is ${index}`);
+    ctx.reply(setAnswer(index));
 });
 
-bot.hears('Send city', ctx => {
+bot.hears('🏙 Send city', ctx => {
     cityRequested.add(ctx.message.chat.id);
     ctx.reply('Okey, send me your city');
 });
 
 bot.on('text', async ctx => {
-    if (cityRequested.has(ctx.message.from.id)) {
-        databaseByCity.add({ id: ctx.message.from.id, city: ctx.message.text });
-        console.log(databaseByCity);
+    if (cityRequested.has(ctx.message.chat.id)) {
         const index = await getQualityBy('city', ctx.message.text);
-        ctx.reply(`Okey, I'll send you air quality index of this place every day. Now it is ${index}`);
+        databaseByCity.add({ id: ctx.message.chat.id, city: ctx.message.text });
+        console.log(databaseByCity);
+        ctx.reply(setAnswer(index));
     }
     cityRequested.delete(ctx.message.chat.id);
 });
+
 
 setInterval(() => {
     console.log(new Date().getUTCHours() + ':' + new Date().getUTCMinutes());
     currentHour = new Date().getUTCHours();
     currentMinute = new Date().getUTCMinutes();
     if (currentHour === CORRECT_HOUR && currentMinute === CORRECT_MINUTES) {
-        databaseByCity.forEach(sendQualityByCity);
-        databaseByCoords.forEach(sendQualityByCoords);
+        databaseByCity.forEach(sendQualityBy('city'));
+        databaseByCoords.forEach(sendQualityBy('coords'));
     }
 }, 60000);
 
