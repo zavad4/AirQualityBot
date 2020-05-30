@@ -8,6 +8,12 @@ const { BOT_TOKEN, API_TOKEN, API_URL, CORRECT_HOUR, CORRECT_MINUTES } = CONSTAN
 const bot = new Telegraf(BOT_TOKEN);
 const token = API_TOKEN;
 
+const databaseByCity = [];
+const databaseByCoords = [];
+const cityRequested = new Set();
+let currentHour = 0;
+let currentMinute = 0;
+
 async function getQualityBy(type, ...args) {
   let params = '';
   if (type === 'city') params = args[0];
@@ -40,7 +46,9 @@ const sendQualityBy = type => async user => {
   let index = 0;
   if (type === 'city') index = await getQualityBy('city', user.city);
   else if (type === 'coords') index = await getQualityBy('coords', user.lon, user.lat);
-  bot.telegram.sendMessage(user.id, `Good morning! AQI of your place is ${index}`);
+  if (typeof index === 'number') {
+    bot.telegram.sendMessage(user.id, `Good morning! AQI of your place is ${index}`);
+  }
 };
 
 const setAnswer = index => {
@@ -51,15 +59,23 @@ const setAnswer = index => {
   return answer;
 };
 
-const deleteUser = (database, id) => database.forEach(user => {
-  if (user.id === id) database.delete(user);
-});
+const deleteUser = (database, id) => {
+  database = database.filter(user => user.id !== id);
+  console.log(database);
+};
 
-const databaseByCity = new Set();
-const databaseByCoords = new Set();
-const cityRequested = new Set();
-let currentHour = 0;
-let currentMinute = 0;
+let arr = [{ id: 1 }, { id: 2 }, { id: 1 }, { id: 3 }];
+deleteUser(arr, 1);
+
+const mailing = () => {
+  console.log(new Date().getUTCHours() + ':' + new Date().getUTCMinutes());
+  currentHour = new Date().getUTCHours();
+  currentMinute = new Date().getUTCMinutes();
+  if (currentHour === CORRECT_HOUR && currentMinute === CORRECT_MINUTES) {
+    databaseByCity.forEach(sendQualityBy('city'));
+    databaseByCoords.forEach(sendQualityBy('coords'));
+  }
+};
 
 bot.command('start', ctx => ctx.reply('Please location or city', Extra.markup(markup =>
   markup.resize()
@@ -72,17 +88,18 @@ bot.command('start', ctx => ctx.reply('Please location or city', Extra.markup(ma
 
 bot.command('unsubscribe', ctx => {
   const id = ctx.message.chat.id;
+  console.log(id);
   deleteUser(databaseByCity, id);
   deleteUser(databaseByCoords, id);
-  console.log(databaseByCity);
-  console.log(databaseByCoords);
+  //console.log(databaseByCity);
+  //console.log(databaseByCoords);
   ctx.reply('By!');
 });
 
 bot.on('location', async ctx => {
   const lon = ctx.message.location.longitude;
   const lat = ctx.message.location.latitude;
-  databaseByCoords.add({ id: ctx.message.chat.id, lon, lat });
+  databaseByCoords.push({ id: ctx.message.chat.id, lon, lat });
   console.log(databaseByCoords);
   const index = await getQualityBy('coords', lon, lat);
   ctx.reply(setAnswer(index));
@@ -90,27 +107,21 @@ bot.on('location', async ctx => {
 
 bot.hears('🏙 Send city', ctx => {
   cityRequested.add(ctx.message.chat.id);
-  ctx.reply('Okey, send me your city');
+  ctx.reply('Please, send your city in English');
 });
 
 bot.on('text', async ctx => {
   if (cityRequested.has(ctx.message.chat.id)) {
     const index = await getQualityBy('city', ctx.message.text);
-    databaseByCity.add({ id: ctx.message.chat.id, city: ctx.message.text });
+    if (typeof index === 'number') {
+      databaseByCity.push({ id: ctx.message.chat.id, city: ctx.message.text });
+    }
     console.log(databaseByCity);
     ctx.reply(setAnswer(index));
   }
   cityRequested.delete(ctx.message.chat.id);
 });
 
-setInterval(() => {
-  console.log(new Date().getUTCHours() + ':' + new Date().getUTCMinutes());
-  currentHour = new Date().getUTCHours();
-  currentMinute = new Date().getUTCMinutes();
-  if (currentHour === CORRECT_HOUR && currentMinute === CORRECT_MINUTES) {
-    databaseByCity.forEach(sendQualityBy('city'));
-    databaseByCoords.forEach(sendQualityBy('coords'));
-  }
-}, 60000);
+setInterval(mailing, 60000);
 
 bot.launch();
