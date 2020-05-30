@@ -8,8 +8,8 @@ const { BOT_TOKEN, API_TOKEN, API_URL, CORRECT_HOUR, CORRECT_MINUTES } = CONSTAN
 const bot = new Telegraf(BOT_TOKEN);
 const token = API_TOKEN;
 
-const databaseByCity = [];
-const databaseByCoords = [];
+let databaseByCity = [];
+let databaseByCoords = [];
 const cityRequested = new Set();
 let currentHour = 0;
 let currentMinute = 0;
@@ -91,8 +91,8 @@ bot.command('unsubscribe', ctx => {
   console.log(id);
   deleteUser(databaseByCity, id);
   deleteUser(databaseByCoords, id);
-  //console.log(databaseByCity);
-  //console.log(databaseByCoords);
+  console.log(databaseByCity);
+  console.log(databaseByCoords);
   ctx.reply('By!');
 });
 
