@@ -2,8 +2,11 @@
 const Telegraf = require('telegraf');
 const Extra = require('telegraf/extra');
 const request = require('request');
-const bot = new Telegraf('1241797755:AAGIIpoXru5SWv4mDO5PhSD7N4G3x91mEBQ');
-const token = 'aa36752d4a3159859afd0e84b3abf7cacab10018';
+const CONSTANTS = require('./config.js');
+const { BOT_TOKEN, API_TOKEN, API_URL, CORRECT_HOUR, CORRECT_MINUTES } = CONSTANTS;
+
+const bot = new Telegraf(BOT_TOKEN);
+const token = API_TOKEN;
 
 async function getQualityBy(type, ...args) {
   let params = '';
@@ -11,7 +14,7 @@ async function getQualityBy(type, ...args) {
   else if (type === 'coords') params = `geo:${args[1]};${args[0]}`;
   const options = {
     method: 'GET',
-    url: `https://api.waqi.info/feed/${params}/?token=${token}`,
+    url: API_URL + `${params}/?token=${token}`,
   };
   let res;
   await new Promise((resolve, reject) => {
@@ -37,7 +40,7 @@ const sendQualityBy = type => async user => {
   let index = 0;
   if (type === 'city') index = await getQualityBy('city', user.city);
   else if (type === 'coords') index = await getQualityBy('coords', user.lon, user.lat);
-  bot.telegram.sendMessage(user.id, index);
+  bot.telegram.sendMessage(user.id, `Good morning! AQI of your place is ${index}`);
 };
 
 const setAnswer = index => {
@@ -55,8 +58,6 @@ const deleteUser = (database, id) => database.forEach(user => {
 const databaseByCity = new Set();
 const databaseByCoords = new Set();
 const cityRequested = new Set();
-const CORRECT_HOUR = 5;
-const CORRECT_MINUTES = 0;
 let currentHour = 0;
 let currentMinute = 0;
 
