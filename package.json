@@ -1,0 +1,26 @@
+{
+  "dependencies": {
+    "telegraf": "^3.38.0"
+  },
+  "name": "Air Quality Bot",
+  "version": "1.0.0",
+  "description": "Bot for game Crosses-Crosses",
+  "author": "Zavodovska Elizavieta",
+  "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zavad4/AirQualityBot.git"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "npm",
+    "node",
+    "Telegraf"
+  ],
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zavad4/AirQualityBot/issues"
+  },
+  "homepage": "https://github.com/zavad4/AirQualityBot"
+}
