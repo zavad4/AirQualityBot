@@ -59,10 +59,7 @@ const setAnswer = index => {
   return answer;
 };
 
-const deleteUser = (database, id) => {
-  database = database.filter(user => user.id !== id);
-  console.log(database);
-};
+const deleteUser = (database, id) => database.filter(user => user.id !== id);
 
 let arr = [{ id: 1 }, { id: 2 }, { id: 1 }, { id: 3 }];
 deleteUser(arr, 1);
@@ -89,8 +86,8 @@ bot.command('start', ctx => ctx.reply('Please location or city', Extra.markup(ma
 bot.command('unsubscribe', ctx => {
   const id = ctx.message.chat.id;
   console.log(id);
-  deleteUser(databaseByCity, id);
-  deleteUser(databaseByCoords, id);
+  databaseByCity = deleteUser(databaseByCity, id);
+  databaseByCoords = deleteUser(databaseByCoords, id);
   console.log(databaseByCity);
   console.log(databaseByCoords);
   ctx.reply('By!');
