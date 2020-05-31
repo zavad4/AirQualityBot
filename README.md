@@ -11,7 +11,8 @@ If you want to receive updates about air pollution every morning you need to wri
 1. Clone this repository 
 ```git clone https://github.com/zavad4/AirQualityBot.git```
 2. In file ```config.js``` change variables like: 
-```const BOT_TOKEN = <YOUR_BOT_TOKEN>;
+```
+const BOT_TOKEN = <YOUR_BOT_TOKEN>;
 const API_TOKEN = <YOUR_API_TOKEN>;
 const API_URL = <YOUR_API_URL>;
 You can get API_TOKEN [here](https://aqicn.org/data-platform/token/#/).
