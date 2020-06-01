@@ -46,7 +46,7 @@ bot.on('location', async ctx => {
     databaseByCoords.push({ id: ctx.message.chat.id, lon, lat });
     const index = await getQualityBy('coords', lon, lat);
     ctx.reply(setAnswer(index));
-  }https://github.com/zavad4/AirQualityBot
+  }
 });
 
 bot.hears('🏙 Send city', ctx => {
