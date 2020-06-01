@@ -7,7 +7,7 @@ An air quality index (AQI) is used by government agencies to communicate to the 
 Air quality is considered satisfactory, and air pollution poses little or no risk.
 * 💛 Moderate (51-100).
 Air quality is acceptable. 
-* 🧡 Unhealthy for Sensitive Groups (151-200).
+* 🧡 Unhealthy for Sensitive Groups (101-150).
 Members of sensitive groups may experience health effects. The general public is not likely to be affected.
 * 💗 Unhealthy (151-200).
 Everyone may begin to experience health effects.
@@ -21,7 +21,7 @@ Health alert: everyone may experience more serious health effects.
 * [Air quality index API](https://aqicn.org/api/)
 
 # How to use it
-If you want to receive updates about air pollution every morning you need to write **/subscribe**. If you want to stop receiving notification it will be enough to write **/unsubscribe**.
+If you want to receive updates about air pollution every morning you need to write **/subscribe**. If you want to stop receiving notification it will be enough to write **/unsubscribe**. Also you can see levels of AQI by writing **/scale**. 
 
 # Installation 
 1. Clone this repository 
