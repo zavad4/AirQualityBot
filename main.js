@@ -3,12 +3,14 @@ const Telegraf = require('telegraf');
 const Extra = require('telegraf/extra');
 
 const FUNCTIONS = require('./modules/functions.js');
-const { getQualityBy, setAnswer, replyFile, deleteUser, isInDatabase, mailing, } = FUNCTIONS;
+const { getQualityBy, setAnswer, replyFile, deleteUser, isInDatabase, mailing } = FUNCTIONS;
 
 const CONSTANTS = require('./modules/config.js');
-const BOT_TOKEN = CONSTANTS.BOT_TOKEN;
+const { BOT_TOKEN, BOT_URL } = CONSTANTS;
 
 const bot = new Telegraf(BOT_TOKEN);
+bot.telegram.setWebhook(`${BOT_URL}/bot${BOT_TOKEN}`);
+bot.startWebhook(`/bot${BOT_TOKEN}`, null, process.env.PORT);
 
 let databaseByCity = [];
 let databaseByCoords = [];
@@ -69,5 +71,3 @@ bot.on('text', async ctx => {
 });
 
 setInterval(() => mailing(bot, databaseByCity, databaseByCoords), 60000);
-
-bot.launch();
