@@ -5,7 +5,7 @@ const API_TOKEN = process.env.API_TOKEN;
 const API_URL = process.env.API_URL;
 const MAIL_TIME = {
   hour: 14,
-  minute: 28,
+  minute: 40,
 };
 
 module.exports = {
