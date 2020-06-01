@@ -58,8 +58,8 @@ const deleteUser = (database, id) => database.filter(user => user.id !== id);
 
 const isInDatabase = (database, id) => {
   let flag = false;
-  for (const iterator of database) {
-    if (id === iterator.id) {
+  for (const user of database) {
+    if (id === user.id) {
       flag = true;
     }
   }
