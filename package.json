@@ -5,6 +5,7 @@
   "main": "main.js",
   "dependencies": {
     "dotenv": "^8.2.0",
+    "request": "^2.88.2",
     "telegraf": "^3.38.0"
   },
   "devDependencies": {},
