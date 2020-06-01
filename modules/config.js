@@ -4,8 +4,8 @@ const BOT_URL = process.env.BOT_URL;
 const API_TOKEN = process.env.API_TOKEN;
 const API_URL = process.env.API_URL;
 const MAIL_TIME = {
-  hour: 15,
-  minute: 1,
+  hour: 5,
+  minute: 0,
 };
 
 module.exports = {
