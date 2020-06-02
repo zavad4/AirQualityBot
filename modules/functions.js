@@ -3,7 +3,7 @@ const request = require('request');
 const fs =  require('fs');
 
 const CONSTANTS = require('./config.js');
-const { BOT_TOKEN, BOT_URL, API_TOKEN, API_URL, MAIL_TIME } = CONSTANTS;
+const { API_TOKEN, API_URL, MAIL_TIME } = CONSTANTS;
 
 async function getQualityBy(type, ...args) {
   let params = '';
@@ -13,7 +13,7 @@ async function getQualityBy(type, ...args) {
     method: 'GET',
     url: API_URL + `${params}/?token=${API_TOKEN}`,
   };
-  let res;
+  let res = 0;
   await new Promise((resolve, reject) => {
     request(options, (error, response, body) => {
       if (error) {
@@ -76,10 +76,6 @@ const mailing = (bot, databaseByCity, databaseByCoords) => {
   }
 };
 
-const wakeUp = () => request.post({
-  url: BOT_URL + '/bot' + BOT_TOKEN
-});
-
 module.exports = {
   getQualityBy,
   setAnswer,
@@ -87,5 +83,4 @@ module.exports = {
   deleteUser,
   isInDatabase,
   mailing,
-  wakeUp,
 };

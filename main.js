@@ -3,7 +3,12 @@ const Telegraf = require('telegraf');
 const Extra = require('telegraf/extra');
 
 const FUNCTIONS = require('./modules/functions.js');
-const { getQualityBy, setAnswer, replyFile, deleteUser, isInDatabase, mailing, wakeUp } = FUNCTIONS;
+const { getQualityBy,
+  setAnswer,
+  replyFile,
+  deleteUser,
+  isInDatabase,
+  mailing } = FUNCTIONS;
 
 const CONSTANTS = require('./modules/config.js');
 const { BOT_TOKEN, BOT_URL } = CONSTANTS;
@@ -72,4 +77,3 @@ bot.on('text', async ctx => {
 
 setInterval(() => mailing(bot, databaseByCity, databaseByCoords), 60000);
 
-//setInterval(wakeUp, 1500000);
