@@ -72,4 +72,4 @@ bot.on('text', async ctx => {
 
 setInterval(() => mailing(bot, databaseByCity, databaseByCoords), 60000);
 
-setInterval(wakeUp, 1500000);
+//setInterval(wakeUp, 1500000);
