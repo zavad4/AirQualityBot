@@ -1,77 +1,79 @@
 'use strict';
-const { Telegraf } = require('telegraf');
+const Telegraf = require('telegraf');
 const Extra = require('telegraf/extra');
-const request = require('request');
-const bot = new Telegraf('1241797755:AAGIIpoXru5SWv4mDO5PhSD7N4G3x91mEBQ');
 
-const token = 'aa36752d4a3159859afd0e84b3abf7cacab10018';
+const FUNCTIONS = require('./modules/functions.js');
+const { getQualityBy,
+  setAnswer,
+  replyFile,
+  deleteUser,
+  isInDatabase,
+  mailing } = FUNCTIONS;
 
+const CONSTANTS = require('./modules/config.js');
+const { BOT_TOKEN, BOT_URL } = CONSTANTS;
 
-async function getQualityByCoords(lon, lat) {
-    let res = 0;
-    const options = {
-        method: 'GET',
-        //url: `http://api.waqi.info/feed/${city}/?token=${token}`,
-        url: `https://api.waqi.info/feed/geo:${lat};${lon}/?token=${token}`
-    };
-    request(options, (error, response, body) => {
-        if (error) throw new Error(error);
-        res = JSON.parse(body).data.aqi;
-    });
-    console.log('it is res2 ' + res);
-    return res;
-}
+const bot = new Telegraf(BOT_TOKEN);
+bot.telegram.setWebhook(`${BOT_URL}/bot${BOT_TOKEN}`);
+bot.startWebhook(`/bot${BOT_TOKEN}`, null, process.env.PORT);
 
-const getQualityByCity = city => {
-    let res = 0;
-    const options = {
-        method: 'GET',
-        url: `http://api.waqi.info/feed/${city}/?token=${token}`,
-    };
-    request(options, (error, response, body) => {
-        if (error) throw new Error(error);
-        res = JSON.parse(body).data.aqi;
-    });
-    return res;
-};
+let databaseByCity = [];
+let databaseByCoords = [];
+const cityRequested = new Set();
 
-const arr = new Set();
+bot.command('start', ctx => replyFile(ctx, './texts/gretting.txt'));
+bot.command('help', ctx => replyFile(ctx, './texts/manual.txt'));
+bot.command('scale', ctx => replyFile(ctx, './texts/scale.txt'));
 
-bot.command('start', ctx => ctx.reply('Please location or city', Extra.markup(markup => markup.resize()
-    .keyboard([
-        markup.locationRequestButton('Send location'),
-        markup.button('Send city')
-    ])
-    .oneTime()
-)));
+bot.command('subscribe', ctx => ctx.reply('Please, send location or city.',
+  Extra.markup(markup =>
+    markup.resize()
+      .keyboard([
+        markup.locationRequestButton('📍 Send location'),
+        markup.button('🏙 Send city'),
+      ])
+      .oneTime()
+  )));
 
-bot.on('location', ctx => {
-    const lon = ctx.message.location.longitude;
-    const lat = ctx.message.location.latitude;
-    const index = getQualityByCoords(lon, lat);
-    console.log('it is index' + index);
-    ctx.reply(`Okey, I'll send you air quality index of this place every day. Now it is ${index}`);
+bot.command('unsubscribe', ctx => {
+  const id = ctx.message.chat.id;
+  databaseByCity = deleteUser(databaseByCity, id);
+  databaseByCoords = deleteUser(databaseByCoords, id);
+  ctx.reply('By!');
 });
 
-bot.hears('Send city', ctx => {
-    arr.add(ctx.message.from.id);
-    ctx.reply('Okey, send me your city');
-    console.log(arr);
+bot.on('location', async ctx => {
+  const lon = ctx.message.location.longitude;
+  const lat = ctx.message.location.latitude;
+  if (isInDatabase(databaseByCoords, ctx.message.chat.id)) {
+    ctx.reply('You are already subscribed, write /unsubscribe and tell the new place');
+  } else {
+    databaseByCoords.push({ id: ctx.message.chat.id, lon, lat });
+    const index = await getQualityBy('coords', lon, lat);
+    ctx.reply(setAnswer(index));
+  }
 });
 
-bot.on('text', ctx => {
-    if (arr.has(ctx.message.from.id)) {
-        const index = getQualityByCity(ctx.message.text);
-        ctx.reply(`Okey, I'll send you air quality index of this place every day. Now it is ${index}`);
+bot.hears('🏙 Send city', ctx => {
+  cityRequested.add(ctx.message.chat.id);
+  ctx.reply('Please, send your city in English');
+});
+
+bot.on('text', async ctx => {
+  const id = ctx.message.chat.id;
+  if (cityRequested.has(id)) {
+    if (isInDatabase(databaseByCity, id)) {
+      ctx.reply('You are already subscribed, write /unsubscribe and tell the new place');
+    } else {
+      const index = await getQualityBy('city', ctx.message.text);
+      if (typeof index === 'number') {
+        databaseByCity.push({ id, city: ctx.message.text });
+        cityRequested.delete(id);
+      }
+      ctx.reply(setAnswer(index));
     }
-    arr.delete(ctx.message.from.id);
-    console.log(arr);
+  }
 });
 
-bot.launch();
+setInterval(() => mailing(bot, databaseByCity, databaseByCoords), 60000);
 
-
-
-const a = getQualityByCoords(50.27, 30.30);
-//console.log('it is a ' + a);
-//getQualityByCity('Lviv');

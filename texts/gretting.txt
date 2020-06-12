@@ -1,0 +1,3 @@
+Hi! I can notify you every morning about air quality index at your place. To do it, write /subscribe. Then share your geolocation or send city in English (e.g. "London" ). 
+Also you can see levels of AQI by writing /scale.
+If you have problems write /help.

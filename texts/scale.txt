@@ -1,0 +1,12 @@
+💚 Good (0-50).
+Air quality is considered satisfactory, and air pollution poses little or no risk.
+💛 Moderate (51-100).
+Air quality is acceptable. 
+🧡 Unhealthy for Sensitive Groups (101-150).
+Members of sensitive groups may experience health effects. The general public is not likely to be affected.
+💗 Unhealthy (151-200).
+Everyone may begin to experience health effects.
+💜 Very Unhealthy (201-300).
+Health warnings of emergency conditions. The entire population is more likely to be affected.
+🖤 Hazardous (300+).
+Health alert: everyone may experience more serious health effects.
